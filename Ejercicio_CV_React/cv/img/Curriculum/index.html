@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="style/style.css">
+
+    <style type="text/css" media="print">
+        .noprint {
+            display: none
+        }
+        
+        .print {
+            display: block !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header class="el-header noprint">
+            <div class="icon-btns">
+                <i class="icon-list" @click="changeLeftMenu"></i>
+                <i class="icon-skip_previous" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('first')"></i>
+                <i class="icon-play_arrow prev-icon" v-bind:class="{'disabled': currentPage == 1}" @click="changeCurrentPage('prev')"></i>
+                <i class="icon-play_arrow" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('next')"></i>
+                <i class="icon-skip_next" v-bind:class="{'disabled': currentPage == pageNum}" @click="changeCurrentPage('last')"></i>
+                <select v-model="currentPage">
+                    <option v-for="page in pageNum" v-bind:value="page">page {{ page }}</option>
+                </select>
+                <i class="icon-zoom_in" v-bind:class="{'disabled': zoomNum == 2}" @click="modifyZoom('in')"></i>
+                <select v-model="zoomNum">
+                    <option value="0.5">50%</option>
+                    <option value="0.6">60%</option>
+                    <option value="0.7">70%</option>
+                    <option value="0.8">80%</option>
+                    <option value="0.9">90%</option>
+                    <option value="1.0" selected>100%</option>
+                    <option value="1.1">110%</option>
+                    <option value="1.2">120%</option>
+                    <option value="1.3">130%</option>
+                    <option value="1.4">140%</option>
+                    <option value="1.5">150%</option>
+                    <option value="1.6">160%</option>
+                    <option value="1.7">170%</option>
+                    <option value="1.8">180%</option>
+                    <option value="1.9">190%</option>
+                    <option value="2.0">200%</option>
+                </select>
+                <i class="icon-zoom_out" v-bind:class="{'disabled': zoomNum == 0.5}" @click="modifyZoom('out')"></i>
+                <i class="icon-format_align_left" @click="textAlign = 'left'"></i>
+                <i class="icon-format_align_center" @click="textAlign = 'center'"></i>
+                <i class="icon-format_align_right" @click="textAlign = 'right'"></i>
+                <i class="icon-print" @click="window.print()"></i>
+            </div>
+        </header>
+
+        <aside class="noprint" width="240px" v-show="ifMenuShow">
+            <nav class="tabNav">
+                <ul>
+                    <li v-bind:class="{ 'curr': currentNav == 0 }" @click="currentNav = 0">Page</li>
+                    <li v-bind:class="{ 'curr': currentNav == 1 }" @click="currentNav = 1">Bookmark</li>
+                </ul>
+
+                <div class="clear"></div>
+            </nav>
+
+            <div class="tab-conent scrollbar" v-bind:style="{ height: asideHeight + 'px' }">
+
+            <section v-show="currentNav == 0">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-file-text2"></i> page {{ page }}</li>
+                </ul>
+            </section>
+
+            <section v-show="currentNav == 1">
+                <ul class="page-menu">
+                    <li v-for="page in pageNum" v-bind:class="{ 'curr': currentPage == page }" @click="changePage(page)"><i class="icon-turned_in_not"></i> Bookmark {{ page }}</li>
+                </ul>
+            </section>
+        </div>
+
+        </aside>
+        <div class="main scrollbar noprint"  v-bind:style="{ height: mainHeight + 'px' }" v-bind:class="{ 'mainLeftM': ifMenuShow, 'aleft': textAlign === 'left','acenter': textAlign === 'center','aright': textAlign === 'right'}">
+            <div class="conent" v-html="pageContent" v-bind:style="zoomStyle"></div>
+
+            <div class="clear"></div>
+        </div>
+
+        <!--专门只为打印的内容-->
+        <div class="conent print" style="display:none" v-html="pageContent"></div>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="js/vue.min.js"></script>
+<script>
+
+var app = new Vue({
+        el: '#app',
+        data: function() {
+            return {
+                // visible: false,
+                isCollapse: false,
+                currentNav: 0,
+                activeName2: 'first',
+                pageNum: 1, 
+                currentPage: 1,
+                pageContent: '',
+                asideHeight: 300,
+                mainHeight: 300,
+                ifMenuShow: true,
+                zoomNum: '1.0',
+                textAlign: 'left',
+                zoomStyle: {},
+                pageDatas: ['<p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:112.719727px;left:75.694672px"><nobr>Datos personales: </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:169.927170px;left:75.694672px"><nobr>Nombre y apellidos: Andrés Retamal López </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:227.134766px;left:75.694672px"><nobr>Dirección: C. CEREZO 6 PBJ C Contacto: 678 17 12 93 </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:284.342285px;left:75.694672px"><nobr>Código postal: 06011 Fecha de nacimiento: 13/10/1998 E-mail: Andresito98sp@gmail.com </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:341.549713px;left:75.694672px"><nobr>Formación académica: </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:370.601471px;left:99.682426px"><nobr>• </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:370.220123px;left:123.670166px"><nobr>La ESO: Educación Secundaria Obligatoria </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:397.903717px;left:99.682426px"><nobr>• <span style="font-family:Calibri;font-size:11.000000px;">Bachillerato. </span></nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:426.574219px;left:99.682426px"><nobr>• <span style="font-family:Calibri;font-size:11.000000px;">Grado Superior (DAM) Terminado sin practicas. </span></nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:484.635101px;left:75.694672px"><nobr>Experiencia profesional </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:513.172180px;left:75.694672px"><nobr>1 año y 6 meses Soporte técnico Marktel - Elvas. (03-2019 / 06-2020) </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:541.842590px;left:75.694672px"><nobr>1 año Atención al Cliente - GSS (10-2020 / 2021) </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:599.050049px;left:75.694672px"><nobr>Idiomas </nobr></span></span></p><div style="position:absolute;top:634.684082px;left:75.561409px"><nobr><table height="72.809570px" width="642.205322px" bordercolor="black" border="2"><tr><td height = "18.202362" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:4.199259px;left:59.702835px"><nobr>Idioma </nobr></span></p></span></td><td height = "18.202362" width="120.338562" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:4.199259px;left:199.631378px"><nobr>Nivel hablado </nobr></span></p></span></td><td height = "18.202362" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:4.199259px;left:363.814209px"><nobr>Nivel escrito </nobr></span></p></span></td><td height = "18.202362" width="120.438446" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:4.199259px;left:505.341919px"><nobr>Nivel conversación </nobr></span></p></span></td></tr><tr><td height = "18.202423" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:28.469076px;left:3.864690px"><nobr>Inglés </nobr></span></p></span></td><td height = "18.202423" width="120.338562" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:28.469076px;left:208.826660px"><nobr>Intermedio </nobr></span></p></span></td><td height = "18.202423" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:28.469076px;left:369.278046px"><nobr>Intermedio </nobr></span></p></span></td><td height = "18.202423" width="120.438446" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:28.469076px;left:529.862671px"><nobr>Intermedio </nobr></span></p></span></td></tr><tr><td height = "18.202393" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:52.738934px;left:3.864690px"><nobr>Portugues </nobr></span></p></span></td><td height = "18.202393" width="120.338562" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:52.738934px;left:208.826660px"><nobr>Intermedio </nobr></span></p></span></td><td height = "18.202393" width="120.438477" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:52.738934px;left:369.278046px"><nobr>Intermedio </nobr></span></p></span></td><td height = "18.202393" width="120.438446" rowspan="1" colspan="1"><span style="font-family:Times New Roman;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><p><span style="position:absolute;top:52.738934px;left:529.862671px"><nobr>Intermedio </nobr></span></p></span></td></tr></table></nobr></div><p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:743.602356px;left:75.694672px"><nobr>Conocimientos </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:779.855042px;left:99.682426px"><nobr>• </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:779.473633px;left:123.670166px"><nobr>Conocimiento en entornos de sistemas operativos: Windows / Ubuntu / Linux </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:797.857422px;left:99.682426px"><nobr>• </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:797.476074px;left:123.670166px"><nobr>Conocimientos de programación Java, JAXB / Hibernate / Ucanaccess , Exist , Xpath, MYSQL , SQL , </nobr></span><span style="position:absolute;top:815.345032px;left:123.670166px"><nobr>PostgreSQL , Html5 / Css, javascript, Spring . </nobr></span></span></p><p><span style="font-family:Calibri;font-size:11.000000px;font-weight:bold;text-decoration:underline;color:#000000;"><span style="position:absolute;top:869.218750px;left:75.694672px"><nobr>Otros datos de interés </nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:12.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:886.234375px;left:99.682426px"><nobr>• <span style="font-family:Calibri;font-size:11.000000px;">Disponibilidad horaria: Total </span></nobr></span><span style="position:absolute;top:905.090149px;left:99.682426px"><nobr><span style="font-size:11.000000px;">• </span><span style="font-family:Calibri;">Permiso de circulación tipo B </span></nobr></span><span style="position:absolute;top:922.959229px;left:99.682426px"><nobr><span style="font-size:11.000000px;">• </span><span style="font-family:Calibri;">Vehículo propio. </span></nobr></span></span></p><p><span style="font-family:Segoe UI Symbol;font-size:11.000000px;font-style:normal;font-weight:normal;color:#000000;"><span style="position:absolute;top:940.961487px;left:99.682426px"><nobr>• <span style="font-family:Calibri;">Posibilidad de desplazamiento </span></nobr></span></span></p>']
+            }
+        },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.pageNum = this.pageDatas.length;
+                this.pageContent = this.pageDatas[0];
+
+                this.setLeftMenuHeight();
+            })
+        },
+        watch: {
+            'currentPage': function(newVal, oldValue) {
+                // console.log('newVal ' + newVal, 'oldValue ' + oldValue);
+                if (newVal) {
+                    this.pageContent = this.pageDatas[this.currentPage - 1];
+                }
+            },
+            'zoomNum': function(newVal, oldValue) {
+                if (newVal) {
+                    this.zoomStyle = {
+                        'transform': 'scale(' + newVal + ')',
+                        '-webkit-transform': 'scale(' + newVal + ')',
+                        '-ms-transform': 'scale(' + newVal + ')',
+                        '-moz-transform': 'scale(' + newVal + ')',
+                        '-o-transform': 'scale(' + newVal + ')'
+                    }
+                }
+            }
+        },
+        methods: {
+            
+            changeCurrentPage: function(methods) {
+                switch (methods) {
+                    case 'first':
+                        this.currentPage = 1;
+                        break;
+                    case 'prev':
+                        if (this.currentPage > 1) {
+                            this.currentPage -= 1;
+                        }
+                        break;
+                    case 'next':
+                        if (this.currentPage < this.pageNum) {
+                            this.currentPage += 1;
+                        }
+                        break;
+                    case 'last':
+                        this.currentPage = this.pageNum;
+                        break;
+                }
+            },
+
+            gotoPage: function(page) {
+                console.log(page);
+                this.currentPage = page;
+            },
+            modifyZoom: function(type) {
+                switch (type) {
+                    case 'in':
+                        if (this.zoomNum < 2) {
+                            // this.zoomNum = (this.zoomNum + 0.1).toFixed(1);
+                            this.zoomNum = (parseFloat(this.zoomNum) + 0.1).toFixed(1);
+                        }
+                        break;
+                    case 'out':
+                        if (this.zoomNum > 0.5) {
+                            this.zoomNum = (parseFloat(this.zoomNum) - 0.1).toFixed(1);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                console.log(this.zoomNum);
+            },
+            setLeftMenuHeight: function() {
+                // this.asideHeight = document.body.scrollHeight - 60;
+                this.mainHeight = document.documentElement.clientHeight - 60 - 20;
+                // 60为头部导航高度， 46为menu高度， 40为上下padding
+                this.asideHeight = this.mainHeight - 20 - 46;
+            },
+            changePage: function(page) {
+                this.currentPage = page;
+                // this.pageContent = this.pageDatas[page - 1];
+            },
+            changeLeftMenu: function() {
+                this.ifMenuShow = !this.ifMenuShow;
+            }
+        }
+    });
+
+function gotoPage(page) {
+    console.log(page);
+    app.gotoPage(page);
+}
+
+</script>
+
+</html>

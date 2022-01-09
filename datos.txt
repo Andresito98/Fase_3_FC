@@ -1,0 +1,16 @@
+
+
+para crear un archivo react:
+
+
+
+Primer paso:
+npm i -g create-react-app
+
+create-react-app Nombre del proyecto
+Ejemplo --> create-react-app login
+
+CAMBIAR LOS CLASS POR CASSNAME
+
+
+1:03:00 --> Aqui enseña a reutilizar los componentes
